@@ -144,4 +144,3 @@ class SonaAccessibilityService : AccessibilityService() {
         }
     }
 }
-EOF
