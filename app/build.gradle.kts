@@ -6,6 +6,7 @@ plugins {
 android {
     namespace = "com.radheai.sona"
     compileSdk = 34
+    buildToolsVersion = "29.0.3"
 
     defaultConfig {
         applicationId = "com.radheai.sona"

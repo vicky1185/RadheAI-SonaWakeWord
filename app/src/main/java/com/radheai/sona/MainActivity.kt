@@ -6,35 +6,35 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import android.speech.tts.TextToSpeech
 import android.widget.Button
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
-
-    private var speechRecognizer: SpeechRecognizer? = null
-    private var isListeningForSona = false
-    private val mainHandler = Handler(Looper.getMainLooper())
+    private var recognizer: SpeechRecognizer? = null
+    private var listening = false
+    private var awaitingCommand = false
+    private var tts: TextToSpeech? = null
+    private var ttsReady = false
+    private val handler = Handler(Looper.getMainLooper())
 
     private lateinit var statusText: TextView
     private lateinit var transcriptText: TextView
     private lateinit var toggleButton: Button
 
-    private val wakeWords = listOf("sona", "सोना", "sohna", "sonaa", "shona", "सोन", "शोना", "sonu")
-
-    private val micPermissionLauncher = registerForActivityResult(
+    private val micPermission = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
-        if (granted) {
-            startSonaListening()
-        } else {
-            statusText.text = "Microphone permission is required to detect 'Sona' / 'सोना'."
-        }
+        if (granted) startListening()
+        else statusText.text = "SONA ko microphone permission chahiye."
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,127 +45,170 @@ class MainActivity : AppCompatActivity() {
         transcriptText = findViewById(R.id.transcriptText)
         toggleButton = findViewById(R.id.startSonaButton)
 
+        tts = TextToSpeech(this) { result ->
+            ttsReady = result == TextToSpeech.SUCCESS
+            if (ttsReady) {
+                val language = tts?.setLanguage(Locale("hi", "IN"))
+                if (language == TextToSpeech.LANG_MISSING_DATA ||
+                    language == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    tts?.setLanguage(Locale.US)
+                }
+            }
+        }
+
         toggleButton.setOnClickListener {
-            if (isListeningForSona) {
-                stopSonaListening()
-            } else {
-                checkMicPermissionAndStart()
+            if (listening) stopListening()
+            else {
+                if (ContextCompat.checkSelfPermission(
+                        this, Manifest.permission.RECORD_AUDIO
+                    ) == PackageManager.PERMISSION_GRANTED) {
+                    startListening()
+                } else {
+                    micPermission.launch(Manifest.permission.RECORD_AUDIO)
+                }
             }
         }
     }
 
-    private fun checkMicPermissionAndStart() {
-        val permissionState = ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.RECORD_AUDIO
-        )
-        if (permissionState == PackageManager.PERMISSION_GRANTED) {
-            startSonaListening()
-        } else {
-            micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+    private fun speak(message: String) {
+        if (ttsReady) {
+            tts?.speak(message, TextToSpeech.QUEUE_FLUSH, null, "sona_reply")
         }
     }
 
-    private fun startSonaListening() {
+    private fun startListening() {
         if (!SpeechRecognizer.isRecognitionAvailable(this)) {
-            statusText.text = "SpeechRecognizer is not available on this Android device."
+            statusText.text = "Speech recognition available nahi hai."
             return
         }
-
-        isListeningForSona = true
+        listening = true
         toggleButton.text = "Stop Sona"
-        statusText.text = "Listening for 'Sona' or 'सोना'..."
-
-        if (speechRecognizer == null) {
-            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this).apply {
-                setRecognitionListener(sonaRecognitionListener)
+        statusText.text = "SONA ko bulao..."
+        if (recognizer == null) {
+            recognizer = SpeechRecognizer.createSpeechRecognizer(this).apply {
+                setRecognitionListener(listener)
             }
         }
-
-        launchRecognitionCycle()
+        listenAgain(300)
     }
 
-    private fun launchRecognitionCycle() {
-        if (!isListeningForSona) return
-        val recognizerIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(
-                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
-            )
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "hi-IN")
-            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
-            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
-        }
-        speechRecognizer?.startListening(recognizerIntent)
+    private fun listenAgain(delay: Long) {
+        if (!listening) return
+        handler.postDelayed({
+            if (!listening) return@postDelayed
+            try {
+                val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                    putExtra(
+                        RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                        RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+                    )
+                    putExtra(RecognizerIntent.EXTRA_LANGUAGE, "hi-IN")
+                    putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
+                }
+                recognizer?.startListening(intent)
+            } catch (_: Exception) {
+                listenAgain(800)
+            }
+        }, delay)
     }
 
-    private fun stopSonaListening() {
-        isListeningForSona = false
-        mainHandler.removeCallbacksAndMessages(null)
-        speechRecognizer?.stopListening()
-        speechRecognizer?.cancel()
+    private fun stopListening() {
+        listening = false
+        awaitingCommand = false
+        handler.removeCallbacksAndMessages(null)
+        recognizer?.cancel()
         toggleButton.text = "Start Sona"
-        statusText.text = "Sona is paused. Tap 'Start Sona' to resume."
+        statusText.text = "SONA band hai."
+        speak("SONA band hai")
     }
 
-    private val sonaRecognitionListener = object : RecognitionListener {
+    private val listener = object : RecognitionListener {
         override fun onReadyForSpeech(params: Bundle?) {
-            statusText.text = "Listening... Say 'Sona' or 'सोना'"
+            statusText.text = if (awaitingCommand) "Haan, command bataiye" else "SONA ko bulao..."
         }
-
         override fun onBeginningOfSpeech() {}
         override fun onRmsChanged(rmsdB: Float) {}
         override fun onBufferReceived(buffer: ByteArray?) {}
         override fun onEndOfSpeech() {}
-
-        override fun onError(error: Int) {
-            if (isListeningForSona) {
-                mainHandler.postDelayed(
-                    { launchRecognitionCycle() },
-                    350L
-                )
-            }
-        }
+        override fun onError(error: Int) { listenAgain(500) }
+        override fun onPartialResults(partialResults: Bundle?) {}
+        override fun onEvent(eventType: Int, params: Bundle?) {}
 
         override fun onResults(results: Bundle?) {
-            val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-            handleTranscriptMatches(matches, isFinal = true)
-            if (isListeningForSona) {
-                mainHandler.postDelayed(
-                    { launchRecognitionCycle() },
-                    350L
-                )
-            }
-        }
+            val phrase = results?.getStringArrayList(
+                SpeechRecognizer.RESULTS_RECOGNITION
+            )?.firstOrNull()?.trim()
 
-        override fun onPartialResults(partialResults: Bundle?) {
-            val matches = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-            handleTranscriptMatches(matches, isFinal = false)
+            if (!phrase.isNullOrBlank()) handlePhrase(phrase)
+            listenAgain(700)
         }
-
-        override fun onEvent(eventType: Int, params: Bundle?) {}
     }
 
-    private fun handleTranscriptMatches(matches: List<String>?, isFinal: Boolean) {
-        val topPhrase = matches?.firstOrNull()?.trim() ?: return
-        transcriptText.text = topPhrase
+    private fun handlePhrase(phrase: String) {
+        transcriptText.text = phrase
+        val wakeRegex = Regex("(?i)sona|sohna|sonaa|shona|sonu|सोना|सोन|शोना")
+        val hasWake = wakeRegex.containsMatchIn(phrase)
 
-        val normalized = topPhrase.lowercase()
-        val woke = wakeWords.any { alias -> normalized.contains(alias) }
+        if (hasWake) {
+            val commandText = wakeRegex.replace(phrase, "").trim(' ', ',', '.', '!')
+            if (commandText.isBlank()) {
+                awaitingCommand = true
+                statusText.text = "SONA ready hai."
+                speak("हाँ, बताइए")
+                return
+            }
+            awaitingCommand = false
+            executeCommand(commandText)
+            return
+        }
 
-        if (woke) {
-            statusText.text = "Wake Word Detected: Sona (सोना)!"
-            val parsed = SonaCommandParser.parse(topPhrase)
-            transcriptText.text = "$topPhrase\n→ Intent: ${parsed.intent} (${parsed.target})"
-        } else if (isFinal) {
-            statusText.text = "Heard speech (no wake word). Still listening..."
+        if (awaitingCommand) {
+            awaitingCommand = false
+            executeCommand(phrase)
+        } else {
+            statusText.text = "SONA ko bulaane ke liye SONA bolo."
+        }
+    }
+
+    private fun executeCommand(text: String) {
+        val command = SonaCommandParser.parse(text)
+        transcriptText.text = "$text\nIntent: ${command.intent} (${command.target})"
+
+        if (command.intent == "UNKNOWN" ||
+            (command.intent == "OPEN_APP" && command.target.isBlank())) {
+            statusText.text = "Command samajh nahi aayi."
+            speak("माफ कीजिए, कमांड समझ नहीं आई")
+            return
+        }
+
+        val service = SonaAccessibilityService.instance
+        if (service == null) {
+            statusText.text = "Accessibility permission enable karein."
+            speak("कृपया SONA की Accessibility अनुमति चालू करें")
+            try {
+                startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            } catch (_: Exception) {}
+            return
+        }
+
+        val success = service.executeVoiceAction(command.intent, command.target)
+        if (success) {
+            statusText.text = "Command chal gayi: ${command.intent}"
+            speak("जी, कर दिया")
+        } else {
+            statusText.text = "Command nahi chali: ${command.intent}"
+            speak("माफ कीजिए, यह कमांड नहीं चली")
         }
     }
 
     override fun onDestroy() {
+        listening = false
+        handler.removeCallbacksAndMessages(null)
+        recognizer?.destroy()
+        recognizer = null
+        tts?.stop()
+        tts?.shutdown()
+        tts = null
         super.onDestroy()
-        isListeningForSona = false
-        speechRecognizer?.destroy()
-        speechRecognizer = null
     }
 }
