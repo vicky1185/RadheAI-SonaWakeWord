@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="24dp"
+    android:background="#0B0F17">
+
+    <TextView
+        android:id="@+id/titleText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Radhe AI — Sona"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:textColor="#F8FAFC" />
+
+    <TextView
+        android:id="@+id/statusText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:text="Tap 'Start Sona' and say 'Sona' or 'सोना'"
+        android:textSize="16sp"
+        android:textColor="#F59E0B" />
+
+    <TextView
+        android:id="@+id/transcriptText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:padding="16dp"
+        android:gravity="center"
+        android:background="#111827"
+        android:text="Waiting for microphone input..."
+        android:textSize="15sp"
+        android:textColor="#CBD5E1" />
+
+    <Button
+        android:id="@+id/startSonaButton"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="32dp"
+        android:text="Start Sona"
+        android:textAllCaps="false"
+        android:textSize="17sp"
+        android:backgroundTint="#F59E0B"
+        android:textColor="#0B0F17" />
+
+</LinearLayout>
