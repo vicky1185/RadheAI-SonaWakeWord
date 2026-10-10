@@ -1,5 +1,3 @@
-
-cat > app/src/main/java/com/radheai/sona/SonaAccessibilityService.kt <<'EOF'
 package com.radheai.sona
 
 import android.accessibilityservice.AccessibilityService
@@ -7,29 +5,35 @@ import android.content.Intent
 import android.provider.Settings
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
-import android.view.accessibility.AccessibilityService.GLOBAL_ACTION_HOME
-import android.view.accessibility.AccessibilityService.GLOBAL_ACTION_BACK
-import android.view.accessibility.AccessibilityService.GLOBAL_ACTION_RECENTS
-import android.view.accessibility.AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS
-import android.view.accessibility.AccessibilityService.GLOBAL_ACTION_QUICK_SETTINGS
 
 class SonaAccessibilityService : AccessibilityService() {
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        // Accessibility events are received here.
+    companion object {
+        var instance: SonaAccessibilityService? = null
+            private set
     }
 
+    override fun onServiceConnected() {
+        super.onServiceConnected()
+        instance = this
+    }
+
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {}
+
     override fun onInterrupt() {}
+
+    override fun onDestroy() {
+        if (instance === this) instance = null
+        super.onDestroy()
+    }
 
     private fun openSystemScreen(action: String): Boolean {
         val intentAction = when (action) {
             "OPEN_SETTINGS" -> Settings.ACTION_SETTINGS
             "OPEN_WIFI_SETTINGS" -> Settings.ACTION_WIFI_SETTINGS
-            "OPEN_BLUETOOTH_SETTINGS" ->
-                Settings.ACTION_BLUETOOTH_SETTINGS
+            "OPEN_BLUETOOTH_SETTINGS" -> Settings.ACTION_BLUETOOTH_SETTINGS
             "OPEN_SOUND_SETTINGS" -> Settings.ACTION_SOUND_SETTINGS
-            "OPEN_DISPLAY_SETTINGS" ->
-                Settings.ACTION_DISPLAY_SETTINGS
+            "OPEN_DISPLAY_SETTINGS" -> Settings.ACTION_DISPLAY_SETTINGS
             else -> return false
         }
 
@@ -85,10 +89,8 @@ class SonaAccessibilityService : AccessibilityService() {
         }
 
         return try {
-            val intent = packageManager
-                .getLaunchIntentForPackage(packageName)
+            val intent = packageManager.getLaunchIntentForPackage(packageName)
                 ?: return false
-
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             startActivity(intent)
             true
@@ -97,23 +99,13 @@ class SonaAccessibilityService : AccessibilityService() {
         }
     }
 
-    fun executeVoiceAction(
-        intentType: String,
-        target: String
-    ): Boolean {
+    fun executeVoiceAction(intentType: String, target: String): Boolean {
         return when (intentType.trim().uppercase()) {
-            "NAVIGATION_HOME" ->
-                performGlobalAction(GLOBAL_ACTION_HOME)
-
-            "NAVIGATION_BACK" ->
-                performGlobalAction(GLOBAL_ACTION_BACK)
-
-            "NAVIGATION_RECENTS" ->
-                performGlobalAction(GLOBAL_ACTION_RECENTS)
-
+            "NAVIGATION_HOME" -> performGlobalAction(GLOBAL_ACTION_HOME)
+            "NAVIGATION_BACK" -> performGlobalAction(GLOBAL_ACTION_BACK)
+            "NAVIGATION_RECENTS" -> performGlobalAction(GLOBAL_ACTION_RECENTS)
             "OPEN_NOTIFICATIONS" ->
                 performGlobalAction(GLOBAL_ACTION_NOTIFICATIONS)
-
             "OPEN_QUICK_SETTINGS" ->
                 performGlobalAction(GLOBAL_ACTION_QUICK_SETTINGS)
 
@@ -124,15 +116,11 @@ class SonaAccessibilityService : AccessibilityService() {
             "OPEN_DISPLAY_SETTINGS" ->
                 openSystemScreen(intentType.trim().uppercase())
 
-            "OPEN_APP" ->
-                openApp(target)
+            "OPEN_APP" -> openApp(target)
 
             "SCROLL_SCREEN" -> {
                 val root = rootInActiveWindow ?: return false
-                val action = if (target.trim().equals(
-                        "UP", ignoreCase = true
-                    )
-                ) {
+                val action = if (target.trim().equals("UP", ignoreCase = true)) {
                     AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD
                 } else {
                     AccessibilityNodeInfo.ACTION_SCROLL_FORWARD
