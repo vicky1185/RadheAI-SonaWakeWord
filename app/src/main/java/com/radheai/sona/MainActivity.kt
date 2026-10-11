@@ -114,6 +114,15 @@ class MainActivity : AppCompatActivity() {
                         RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
                     )
                     putExtra(RecognizerIntent.EXTRA_LANGUAGE, "hi-IN")
+                    if (android.os.Build.VERSION.SDK_INT >= 34) {
+                        putExtra(RecognizerIntent.EXTRA_ENABLE_LANGUAGE_DETECTION, true)
+                        putExtra(RecognizerIntent.EXTRA_ENABLE_LANGUAGE_SWITCH,
+                            RecognizerIntent.LANGUAGE_SWITCH_BALANCED)
+                        putExtra(RecognizerIntent.EXTRA_LANGUAGE_DETECTION_ALLOWED_LANGUAGES,
+                            arrayListOf("hi-IN", "en-IN"))
+                        putExtra(RecognizerIntent.EXTRA_LANGUAGE_SWITCH_ALLOWED_LANGUAGES,
+                            arrayListOf("hi-IN", "en-IN"))
+                    }
                     putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
                 }
                 recognizer?.startListening(intent)
