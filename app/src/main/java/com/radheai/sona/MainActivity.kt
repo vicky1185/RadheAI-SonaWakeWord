@@ -48,10 +48,21 @@ class MainActivity : AppCompatActivity() {
         tts = TextToSpeech(this) { result ->
             ttsReady = result == TextToSpeech.SUCCESS
             if (ttsReady) {
-                val language = tts?.setLanguage(Locale("hi", "IN"))
+                val hindiLocale = Locale("hi", "IN")
+                val language = tts?.setLanguage(hindiLocale)
+
                 if (language == TextToSpeech.LANG_MISSING_DATA ||
                     language == TextToSpeech.LANG_NOT_SUPPORTED) {
                     tts?.setLanguage(Locale.US)
+                } else {
+                    val femaleHindiVoice = tts?.voices?.firstOrNull {
+                        it.locale.language == "hi" &&
+                        (it.name.contains("female", ignoreCase = true) ||
+                         it.name.contains("woman", ignoreCase = true))
+                    }
+                    if (femaleHindiVoice != null) {
+                        tts?.voice = femaleHindiVoice
+                    }
                 }
             }
         }
