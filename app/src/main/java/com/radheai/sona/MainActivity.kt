@@ -146,7 +146,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun handlePhrase(phrase: String) {
         transcriptText.text = phrase
-        val wakeRegex = Regex("(?i)sona|sohna|sonaa|shona|sonu|सोना|सोन|शोना")
+        val wakeRegex = Regex("(?i)sia|सीया|सिया")
         val hasWake = wakeRegex.containsMatchIn(phrase)
 
         if (hasWake) {
@@ -154,7 +154,7 @@ class MainActivity : AppCompatActivity() {
             if (commandText.isBlank()) {
                 awaitingCommand = true
                 statusText.text = "SONA ready hai."
-                speak("हाँ, बताइए")
+                speak("Yes boss!")
                 return
             }
             awaitingCommand = false
@@ -166,7 +166,7 @@ class MainActivity : AppCompatActivity() {
             awaitingCommand = false
             executeCommand(phrase)
         } else {
-            statusText.text = "SONA ko bulaane ke liye SONA bolo."
+            statusText.text = "SIA ko bulaane ke liye Sia bolo."
         }
     }
 
