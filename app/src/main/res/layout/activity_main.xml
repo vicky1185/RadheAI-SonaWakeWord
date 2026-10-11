@@ -22,7 +22,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:gravity="center"
-        android:text="Tap 'Start VS AI' and say 'Lin' or 'लिन'"
+        android:text="Tap 'Start VS AI' and say 'Max' or 'मैक्स'"
         android:textSize="16sp"
         android:textColor="#F59E0B" />
 

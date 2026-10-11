@@ -83,9 +83,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun speak(message: String) {
         if (ttsReady) {
-            tts?.speak(message, TextToSpeech.QUEUE_FLUSH, null, "vsai_reply")
+            tts?.speak(
+                message,
+                TextToSpeech.QUEUE_FLUSH,
+                null,
+                "vsai_reply"
+            )
         }
     }
+
 
     private fun startListening() {
         if (!SpeechRecognizer.isRecognitionAvailable(this)) {
@@ -94,7 +100,7 @@ class MainActivity : AppCompatActivity() {
         }
         listening = true
         toggleButton.text = "Stop VS AI"
-        statusText.text = "Lin ko bulao..."
+        statusText.text = "Max ko bulao..."
         if (recognizer == null) {
             recognizer = SpeechRecognizer.createSpeechRecognizer(this).apply {
                 setRecognitionListener(listener)
@@ -144,7 +150,7 @@ class MainActivity : AppCompatActivity() {
 
     private val listener = object : RecognitionListener {
         override fun onReadyForSpeech(params: Bundle?) {
-            statusText.text = if (awaitingCommand) "Haan, command bataiye" else "Lin ko bulao..."
+            statusText.text = if (awaitingCommand) "Haan, command bataiye" else "Max ko bulao..."
         }
         override fun onBeginningOfSpeech() {}
         override fun onRmsChanged(rmsdB: Float) {}
@@ -166,14 +172,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun handlePhrase(phrase: String) {
         transcriptText.text = phrase
-        val wakeRegex = Regex("(?i)lin|lynn|leen|लिन|लीन")
+        val wakeRegex = Regex("(?i)\\bmax\\b|मैक्स|मेक्स")
         val hasWake = wakeRegex.containsMatchIn(phrase)
 
         if (hasWake) {
             val commandText = wakeRegex.replace(phrase, "").trim(' ', ',', '.', '!')
             if (commandText.isBlank()) {
                 awaitingCommand = true
-                statusText.text = "Lin ready hai."
+                statusText.text = "Max ready hai."
                 speak("Yes boss!")
                 return
             }
@@ -186,7 +192,7 @@ class MainActivity : AppCompatActivity() {
             awaitingCommand = false
             executeCommand(phrase)
         } else {
-            statusText.text = "VS AI ko jagane ke liye Lin bolo."
+            statusText.text = "VS AI ko jagane ke liye Max bolo."
         }
     }
 
