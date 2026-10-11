@@ -22,7 +22,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:gravity="center"
-        android:text="Tap 'Start Sona' and say 'Sona' or 'सोना'"
+        android:text="Tap 'Start SIA' and say 'Sona' or 'सोना'"
         android:textSize="16sp"
         android:textColor="#F59E0B" />
 
@@ -43,7 +43,7 @@
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_marginTop="32dp"
-        android:text="Start Sona"
+        android:text="Start SIA"
         android:textAllCaps="false"
         android:textSize="17sp"
         android:backgroundTint="#F59E0B"
