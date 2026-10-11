@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
         ActivityResultContracts.RequestPermission()
     ) { granted ->
         if (granted) startListening()
-        else statusText.text = "SONA ko microphone permission chahiye."
+        else statusText.text = "Lisha ko microphone permission chahiye."
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
 
         statusText = findViewById(R.id.statusText)
         transcriptText = findViewById(R.id.transcriptText)
-        toggleButton = findViewById(R.id.startSonaButton)
+        toggleButton = findViewById(R.id.startLishaButton)
 
         tts = TextToSpeech(this) { result ->
             ttsReady = result == TextToSpeech.SUCCESS
@@ -83,7 +83,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun speak(message: String) {
         if (ttsReady) {
-            tts?.speak(message, TextToSpeech.QUEUE_FLUSH, null, "sona_reply")
+            tts?.speak(message, TextToSpeech.QUEUE_FLUSH, null, "lisha_reply")
         }
     }
 
@@ -93,8 +93,8 @@ class MainActivity : AppCompatActivity() {
             return
         }
         listening = true
-        toggleButton.text = "Stop Sona"
-        statusText.text = "SONA ko bulao..."
+        toggleButton.text = "Stop Lisha"
+        statusText.text = "Lisha ko bulao..."
         if (recognizer == null) {
             recognizer = SpeechRecognizer.createSpeechRecognizer(this).apply {
                 setRecognitionListener(listener)
@@ -137,14 +137,14 @@ class MainActivity : AppCompatActivity() {
         awaitingCommand = false
         handler.removeCallbacksAndMessages(null)
         recognizer?.cancel()
-        toggleButton.text = "Start Sona"
-        statusText.text = "SONA band hai."
-        speak("SONA band hai")
+        toggleButton.text = "Start Lisha"
+        statusText.text = "Lisha band hai."
+        speak("Lisha band hai")
     }
 
     private val listener = object : RecognitionListener {
         override fun onReadyForSpeech(params: Bundle?) {
-            statusText.text = if (awaitingCommand) "Haan, command bataiye" else "SONA ko bulao..."
+            statusText.text = if (awaitingCommand) "Haan, command bataiye" else "Lisha ko bulao..."
         }
         override fun onBeginningOfSpeech() {}
         override fun onRmsChanged(rmsdB: Float) {}
@@ -166,14 +166,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun handlePhrase(phrase: String) {
         transcriptText.text = phrase
-        val wakeRegex = Regex("(?i)sia|सीया|सिया")
+        val wakeRegex = Regex("(?i)lisha|लीशा|लिशा")
         val hasWake = wakeRegex.containsMatchIn(phrase)
 
         if (hasWake) {
             val commandText = wakeRegex.replace(phrase, "").trim(' ', ',', '.', '!')
             if (commandText.isBlank()) {
                 awaitingCommand = true
-                statusText.text = "SONA ready hai."
+                statusText.text = "Lisha ready hai."
                 speak("Yes boss!")
                 return
             }
@@ -186,7 +186,7 @@ class MainActivity : AppCompatActivity() {
             awaitingCommand = false
             executeCommand(phrase)
         } else {
-            statusText.text = "SIA ko bulaane ke liye Sia bolo."
+            statusText.text = "Lisha ko bulaane ke liye Lisha bolo."
         }
     }
 
@@ -204,7 +204,7 @@ class MainActivity : AppCompatActivity() {
         val service = SonaAccessibilityService.instance
         if (service == null) {
             statusText.text = "Accessibility permission enable karein."
-            speak("कृपया SONA की Accessibility अनुमति चालू करें")
+            speak("कृपया Lisha की Accessibility अनुमति चालू करें")
             try {
                 startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
             } catch (_: Exception) {}

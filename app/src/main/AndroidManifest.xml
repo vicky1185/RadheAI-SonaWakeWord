@@ -18,7 +18,7 @@
 
     <application
         android:allowBackup="true"
-        android:label="Radhe AI — SIA"
+        android:label="Lisha AI"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
 
@@ -34,7 +34,7 @@
         <service
             android:name=".SonaAccessibilityService"
             android:exported="true"
-            android:label="Radhe AI SIA Accessibility"
+            android:label="Lisha AI Accessibility"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
