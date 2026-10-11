@@ -99,7 +99,9 @@ object SonaCommandParser {
                 if (app.isNotEmpty() &&
                     (text.contains("open") || text.contains("launch") ||
                      text.contains("start") || text.contains("खोल") ||
-                     text.contains("शुरू"))) {
+                     text.contains("शुरू") || text.contains("चलाओ") ||
+                     text.contains("चालू") || text.contains("खोलिए") ||
+                     text.contains("खोल दो") || text.contains("please"))) {
                     cmd("OPEN_APP", app)
                 } else {
                     cmd("UNKNOWN")
