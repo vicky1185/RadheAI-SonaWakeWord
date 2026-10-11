@@ -11,7 +11,7 @@
         android:id="@+id/titleText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Lisha AI"
+        android:text="VS AI"
         android:textSize="26sp"
         android:textStyle="bold"
         android:textColor="#F8FAFC" />
@@ -22,7 +22,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:gravity="center"
-        android:text="Tap 'Start Lisha' and say 'Lisha' or 'लीशा'"
+        android:text="Tap 'Start VS AI' and say 'Lin' or 'लिन'"
         android:textSize="16sp"
         android:textColor="#F59E0B" />
 
@@ -39,11 +39,11 @@
         android:textColor="#CBD5E1" />
 
     <Button
-        android:id="@+id/startLishaButton"
+        android:id="@+id/startVsAiButton"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_marginTop="32dp"
-        android:text="Start Lisha"
+        android:text="Start VS AI"
         android:textAllCaps="false"
         android:textSize="17sp"
         android:backgroundTint="#F59E0B"
