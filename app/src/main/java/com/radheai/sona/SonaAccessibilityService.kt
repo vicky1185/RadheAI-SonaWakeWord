@@ -81,6 +81,8 @@ class SonaAccessibilityService : AccessibilityService() {
         val packageName = when (name) {
             "youtube" -> "com.google.android.youtube"
             "whatsapp" -> "com.whatsapp"
+            "instagram" -> "com.instagram.android"
+            "facebook" -> "com.facebook.katana"
             "chrome" -> "com.android.chrome"
             "gmail" -> "com.google.android.gm"
             "maps", "google maps" -> "com.google.android.apps.maps"

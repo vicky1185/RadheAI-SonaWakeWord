@@ -81,6 +81,10 @@ object SonaCommandParser {
                     text.contains("calculator") ||
                         text.contains("कैलकुलेटर") -> "calculator"
 
+                    text.contains("instagram") || text.contains("इंस्टाग्राम") -> "instagram"
+
+                    text.contains("facebook") || text.contains("फेसबुक") -> "facebook"
+
                     text.contains("chrome") -> "chrome"
 
                     text.contains("gmail") -> "gmail"
