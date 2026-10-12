@@ -38,16 +38,15 @@ object SonaCommandParser {
                 text.contains("नोटिफिकेशन") ->
                 cmd("OPEN_NOTIFICATIONS")
 
-            text.contains("settings") ||
-                text.contains("सेटिंग") ->
+            text.contains("settings") || text.contains("सेटिंग") ->
                 cmd("OPEN_SETTINGS")
 
-            text.contains("go home") || text == "home" ||
-                text.contains("होम") ->
+            text == "home" || text.contains("go home") ||
+                text == "मैक्स होम" ->
                 cmd("NAVIGATION_HOME")
 
-            text.contains("go back") || text == "back" ||
-                text.contains("वापस") ->
+            text == "back" || text.contains("go back") ||
+                text == "वापस" ->
                 cmd("NAVIGATION_BACK")
 
             text.contains("recent apps") ||
@@ -56,10 +55,11 @@ object SonaCommandParser {
                 cmd("NAVIGATION_RECENTS")
 
             text.contains("scroll") || text.contains("स्क्रॉल") ||
-                text.contains("नीचे") || text.contains("ऊपर") ->
+                text == "नीचे" || text == "ऊपर" ->
                 cmd(
                     "SCROLL_SCREEN",
-                    if (text.contains("up") || text.contains("ऊपर")) "UP" else "DOWN"
+                    if (text.contains("up") || text.contains("ऊपर")) "UP"
+                    else "DOWN"
                 )
 
             text.contains("flashlight") || text.contains("torch") ||
@@ -67,42 +67,52 @@ object SonaCommandParser {
                 cmd("TOGGLE_FLASHLIGHT")
 
             else -> {
-                val app = when {
-                    text.contains("whatsapp") ||
-                        text.contains("व्हाट्सएप") ||
-                        text.contains("व्हाट्स ऐप") -> "whatsapp"
+                val launchVerbs = listOf(
+                    "open", "launch", "start", " kholo", "kholo",
+                    "khol", "chalao", "chalu karo", "please",
+                    "खोलो", "खोलना", "खोल", "खोल दो", "खोलिए",
+                    "चलाओ", "चालू करो", "शुरू करो", "चालू", "खोलकर"
+                )
 
-                    text.contains("youtube") ||
-                        text.contains("यूट्यूब") -> "youtube"
+                val asksToLaunch = launchVerbs.any { text.contains(it.trim()) }
 
-                    text.contains("camera") ||
-                        text.contains("कैमरा") -> "camera"
+                val cleaned = text
+                    .replace("please", "")
+                    .replace("open", "")
+                    .replace("launch", "")
+                    .replace("start", "")
+                    .replace("chalu karo", "")
+                    .replace("chalao", "")
+                    .replace("kholo", "")
+                    .replace("khol", "")
+                    .replace("खोलकर", "")
+                    .replace("खोलिए", "")
+                    .replace("खोलना", "")
+                    .replace("खोल दो", "")
+                    .replace("खोलो", "")
+                    .replace("खोल", "")
+                    .replace("चालू करो", "")
+                    .replace("शुरू करो", "")
+                    .replace("चलाओ", "")
+                    .replace("चालू", "")
+                    .replace("मैक्स", "")
+                    .replace("max", "")
+                    .trim(' ', ',', '.', '!', '?')
 
-                    text.contains("calculator") ||
-                        text.contains("कैलकुलेटर") -> "calculator"
-
-                    text.contains("instagram") || text.contains("इंस्टाग्राम") -> "instagram"
-
-                    text.contains("facebook") || text.contains("फेसबुक") -> "facebook"
-
-                    text.contains("chrome") -> "chrome"
-
-                    text.contains("gmail") -> "gmail"
-
-                    text.contains("google maps") ||
-                        text.contains("maps") ||
-                        text.contains("मैप") -> "maps"
-
-                    else -> ""
+                val target = when {
+                    cleaned.contains("व्हाट्सएप") ||
+                        cleaned.contains("व्हाट्स ऐप") -> "whatsapp"
+                    cleaned.contains("यूट्यूब") -> "youtube"
+                    cleaned.contains("इंस्टाग्राम") -> "instagram"
+                    cleaned.contains("फेसबुक") -> "facebook"
+                    cleaned.contains("कैमरा") -> "camera"
+                    cleaned.contains("कैलकुलेटर") -> "calculator"
+                    cleaned.contains("मैप") -> "maps"
+                    else -> cleaned
                 }
 
-                if (app.isNotEmpty() &&
-                    (text.contains("open") || text.contains("launch") ||
-                     text.contains("start") || text.contains("खोल") ||
-                     text.contains("शुरू") || text.contains("चलाओ") ||
-                     text.contains("चालू") || text.contains("खोलिए") ||
-                     text.contains("खोल दो") || text.contains("please"))) {
-                    cmd("OPEN_APP", app)
+                if (target.isNotBlank() && (asksToLaunch || target != text)) {
+                    cmd("OPEN_APP", target)
                 } else {
                     cmd("UNKNOWN")
                 }

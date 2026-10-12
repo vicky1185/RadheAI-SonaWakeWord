@@ -50,6 +50,7 @@ class SonaAccessibilityService : AccessibilityService() {
 
     private fun openApp(target: String): Boolean {
         val name = target.trim().lowercase()
+        if (name.isBlank()) return false
 
         if (name == "camera") {
             return try {
@@ -78,23 +79,52 @@ class SonaAccessibilityService : AccessibilityService() {
             }
         }
 
-        val packageName = when (name) {
-            "youtube" -> "com.google.android.youtube"
-            "whatsapp" -> "com.whatsapp"
-            "instagram" -> "com.instagram.android"
-            "facebook" -> "com.facebook.katana"
-            "chrome" -> "com.android.chrome"
-            "gmail" -> "com.google.android.gm"
-            "maps", "google maps" -> "com.google.android.apps.maps"
-            "settings" -> "com.android.settings"
-            else -> return false
-        }
+        val knownPackages = mapOf(
+            "youtube" to "com.google.android.youtube",
+            "whatsapp" to "com.whatsapp",
+            "instagram" to "com.instagram.android",
+            "facebook" to "com.facebook.katana",
+            "chrome" to "com.android.chrome",
+            "gmail" to "com.google.android.gm",
+            "maps" to "com.google.android.apps.maps",
+            "google maps" to "com.google.android.apps.maps",
+            "settings" to "com.android.settings"
+        )
 
         return try {
-            val intent = packageManager.getLaunchIntentForPackage(packageName)
-                ?: return false
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            startActivity(intent)
+            val packageName = knownPackages[name]
+
+            val launchIntent = if (packageName != null) {
+                packageManager.getLaunchIntentForPackage(packageName)
+            } else {
+                val installed = packageManager.getInstalledApplications(0)
+                val normalizedName = name.filter { it.isLetterOrDigit() }
+
+                val exact = installed.firstOrNull {
+                    it.loadLabel(packageManager).toString()
+                        .lowercase()
+                        .filter { ch -> ch.isLetterOrDigit() } == normalizedName
+                }
+
+                val matches = if (exact != null) {
+                    exact
+                } else {
+                    val prefixMatches = installed.filter {
+                        val label = it.loadLabel(packageManager).toString()
+                            .lowercase()
+                            .filter { ch -> ch.isLetterOrDigit() }
+                        label.startsWith(normalizedName)
+                    }
+                    prefixMatches.singleOrNull()
+                }
+
+                matches?.let {
+                    packageManager.getLaunchIntentForPackage(it.packageName)
+                }
+            } ?: return false
+
+            launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(launchIntent)
             true
         } catch (_: Exception) {
             false
